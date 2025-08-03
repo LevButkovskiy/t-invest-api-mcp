@@ -101,6 +101,7 @@ const handleSessionRequest = async (
   req: express.Request,
   res: express.Response,
 ) => {
+  console.log(JSON.stringify(req.headers, null, 2));
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   if (!sessionId || !transports[sessionId]) {
     res.status(400).send('Invalid or missing session ID');
