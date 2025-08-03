@@ -56,7 +56,7 @@ app.post('/mcp', async (req, res) => {
     });
 
     server.registerTool(
-      'get_shares',
+      'instruments/shares',
       {
         title: 'Список акций',
         description: 'Список всех доступных акций',
@@ -67,13 +67,37 @@ app.post('/mcp', async (req, res) => {
         return {
           content: instruments.map((instrument) => ({
             type: 'text',
-            text: `instrument_id: ${instrument.uid}, ticker: ${instrument.ticker}, name: ${instrument.name}`,
+            text: `instrument_id: ${instrument.uid}; ticker: ${instrument.ticker}; название: ${instrument.name}; лотность: ${instrument.lot}; валюта: ${instrument.currency};`,
           })),
         };
       },
     );
     server.registerTool(
-      'get_accounts',
+      'users/getInfo',
+      {
+        title: 'Информация о пользователе',
+        description:
+          'Получить информацию о пользователе: тариф, признак квалификации, пройденные тесты и др.',
+      },
+      async () => {
+        const info = await api.users.getInfo({});
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Тариф: ${info.tariff}; Премиум: ${
+                info.premStatus ? 'Да' : 'Нет'
+              }; Квалификация: ${
+                info.qualStatus ? 'Да' : 'Нет'
+              }; Может работать с ${info.qualifiedForWorkWith.join(', ')}`,
+            },
+          ],
+        };
+      },
+    );
+    server.registerTool(
+      'users/getAccounts',
       {
         title: 'Счета пользователя',
         description: 'Позволяет получить информацию о счетах пользователя',
@@ -90,7 +114,7 @@ app.post('/mcp', async (req, res) => {
       },
     );
     server.registerTool(
-      'get_portfolio',
+      'operations/getPortfolio',
       {
         title: 'Портфель',
         description:
