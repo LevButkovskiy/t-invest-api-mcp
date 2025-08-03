@@ -14,7 +14,7 @@ const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // Handle POST requests for client-to-server communication
 app.post('/mcp', async (req, res) => {
-  console.log(JSON.stringify(req, null, 2));
+  console.log(JSON.stringify(req.headers, null, 2));
   const token = req.headers['authorization']?.toString().startsWith('Bearer ')
     ? req.headers['authorization'].toString().slice(7)
     : undefined;
