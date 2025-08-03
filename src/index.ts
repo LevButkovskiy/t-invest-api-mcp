@@ -3,8 +3,8 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
 import { randomUUID } from 'node:crypto';
-import { TinkoffInvestApi } from 'tinkoff-invest-api';
-import { SharesResponse } from 'tinkoff-invest-api/cjs/generated/instruments.js';
+import { Helpers, TinkoffInvestApi } from 'tinkoff-invest-api';
+import z from 'zod';
 
 const app = express();
 app.use(express.json());
@@ -56,21 +56,81 @@ app.post('/mcp', async (req, res) => {
     });
 
     server.registerTool(
-      'get_instruments',
+      'get_shares',
       {
-        title: 'Echo Tool',
-        description: 'Returns all available instruments',
+        title: 'Список акций',
+        description: 'Список всех доступных акций',
       },
       async () => {
-        const { instruments }: SharesResponse = await api.instruments.shares(
-          {},
-        );
+        const { instruments } = await api.instruments.shares({});
 
         return {
           content: instruments.map((instrument) => ({
             type: 'text',
             text: `instrument_id: ${instrument.uid}, ticker: ${instrument.ticker}, name: ${instrument.name}`,
           })),
+        };
+      },
+    );
+    server.registerTool(
+      'get_accounts',
+      {
+        title: 'Счета пользователя',
+        description: 'Позволяет получить информацию о счетах пользователя',
+      },
+      async () => {
+        const { accounts } = await api.users.getAccounts({});
+
+        return {
+          content: accounts.map((account) => ({
+            type: 'text',
+            text: `id: ${account.id}, name: ${account.name}, type: ${account.type}, status: ${account.status}`,
+          })),
+        };
+      },
+    );
+    server.registerTool(
+      'get_portfolio',
+      {
+        title: 'Портфель',
+        description:
+          'Возвращает информацию о портфеле по счету: сумма, доступный баланс, открытые позиции',
+        inputSchema: {
+          accountId: z.string().describe('ID счета'),
+        },
+      },
+      async ({ accountId }) => {
+        const portfolio = await api.operations.getPortfolio({ accountId });
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Общая сумма: ${Helpers.toMoneyString(
+                portfolio.totalAmountPortfolio,
+              )}; Доступный баланс: ${Helpers.toMoneyString(
+                portfolio.totalAmountCurrencies,
+              )}`,
+            },
+
+            {
+              type: 'text',
+              text: `Открытые позиции - ${portfolio.positions
+                .map(
+                  (position) =>
+                    `instrumentUid: ${
+                      position.instrumentUid
+                    }, количество: ${Helpers.toNumber(
+                      position.quantity,
+                    )}, средняя цена: ${Helpers.toMoneyString(
+                      position.averagePositionPrice,
+                    )} текущая цена: ${Helpers.toMoneyString(
+                      position.currentPrice,
+                    )}`,
+                )
+                .join(', ')}`,
+            },
+          ],
         };
       },
     );
@@ -119,3 +179,4 @@ app.get('/mcp', handleSessionRequest);
 app.delete('/mcp', handleSessionRequest);
 
 app.listen(3000);
+console.log('Server is running on http://localhost:3000');

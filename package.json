@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "T-Invest API MCP Server",
   "private": true,
-  "type": "module",
   "bin": {
     "t-invest-api": "./build/index.js"
   },
@@ -13,7 +12,7 @@
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "npm run build",
-    "watch": "tsc --watch",
+    "dev": "nodemon --exec ts-node src/index.ts",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js"
   },
   "dependencies": {
@@ -25,6 +24,8 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^20.11.24",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
