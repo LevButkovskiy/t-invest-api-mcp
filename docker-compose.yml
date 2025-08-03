@@ -1,0 +1,7 @@
+services:
+  t-invest-api:
+    build: .
+    container_name: t-invest-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
