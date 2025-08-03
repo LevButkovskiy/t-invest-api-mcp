@@ -1,14 +1,12 @@
-# Dockerfile for t-invest-api MCP server
-FROM node:18-alpine
+FROM node:20
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
 COPY . ./
 
-# Build TypeScript if needed (uncomment if build step required)
 RUN npm run build
 
 CMD ["node", "build/index.js"]
