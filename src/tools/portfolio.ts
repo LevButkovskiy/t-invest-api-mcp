@@ -4,10 +4,68 @@ import {
   GetPortfolioParamsSchema,
 } from '../schemas/portfolio';
 
+// Вспомогательные функции для форматирования
+const formatMoney = (money: any): string => {
+  if (!money) return '0 ₽';
+  return Helpers.toMoneyString(money);
+};
+
+const formatNumber = (quotation: any): string => {
+  if (!quotation) return '0';
+  const number = Helpers.toNumber(quotation);
+  return number ? number.toString() : '0';
+};
+
+const formatPercentage = (quotation: any): string => {
+  if (!quotation) return '0%';
+  const value = Helpers.toNumber(quotation);
+  return value ? `${value.toFixed(2)}%` : '0%';
+};
+
+const formatPosition = (position: any): string => {
+  const ticker = position.ticker || 'N/A';
+  const instrumentType = position.instrumentType || 'N/A';
+  const instrumentUid = position.instrumentUid || 'N/A';
+  const quantity = formatNumber(position.quantity);
+  const currentPrice = formatMoney(position.currentPrice);
+  const averagePrice = formatMoney(position.averagePositionPrice);
+  const expectedYield = formatMoney(position.expectedYield);
+  const dailyYield = formatMoney(position.dailyYield);
+  const blocked = position.blocked ? ' (заблокировано)' : '';
+
+  return `• ${ticker} (${instrumentType})${blocked}
+  instrumentUid: ${instrumentUid}
+  Количество: ${quantity} лотов
+  Текущая цена: ${currentPrice}
+  Средняя цена: ${averagePrice}
+  Ожидаемая доходность: ${expectedYield}
+  Дневная доходность: ${dailyYield}`;
+};
+
+const formatVirtualPosition = (position: any): string => {
+  const ticker = position.ticker || 'N/A';
+  const instrumentType = position.instrumentType || 'N/A';
+  const instrumentUid = position.instrumentUid || 'N/A';
+  const quantity = formatNumber(position.quantity);
+  const currentPrice = formatMoney(position.currentPrice);
+  const averagePrice = formatMoney(position.averagePositionPrice);
+  const expectedYield = formatMoney(position.expectedYield);
+  const expireDate = position.expireDate
+    ? new Date(position.expireDate).toLocaleDateString('ru-RU')
+    : 'N/A';
+
+  return `• ${ticker} (${instrumentType}) - истекает ${expireDate}
+  instrumentUid: ${instrumentUid}
+  Количество: ${quantity} лотов
+  Текущая цена: ${currentPrice}
+  Средняя цена: ${averagePrice}
+  Ожидаемая доходность: ${expectedYield}`;
+};
+
 export const getPortfolioTool = {
   name: 'operations_getPortfolio',
   description:
-    'Возвращает информацию о портфеле по счету: сумма, доступный баланс, открытые позиции',
+    'Возвращает детальную информацию о портфеле по счету: общая стоимость, доходность, открытые позиции, виртуальные позиции. Для получения подробной информации об инструментах используйте: instruments_shareBy (для акций), instruments_bondBy (для облигаций), instruments_etfBy (для ETF), instruments_currencyBy (для валют), instruments_futureBy (для фьючерсов), instruments_optionBy (для опционов) по instrumentUid из позиций',
   parameters: GetPortfolioParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetPortfolioParams;
@@ -17,25 +75,59 @@ export const getPortfolioTool = {
         accountId: params.accountId,
       });
 
-      const totalAmount = Helpers.toMoneyString(portfolio.totalAmountPortfolio);
-      const availableBalance = Helpers.toMoneyString(
-        portfolio.totalAmountCurrencies,
+      // Общая информация о портфеле
+      const totalPortfolio = formatMoney(portfolio.totalAmountPortfolio);
+      const totalShares = formatMoney(portfolio.totalAmountShares);
+      const totalBonds = formatMoney(portfolio.totalAmountBonds);
+      const totalEtf = formatMoney(portfolio.totalAmountEtf);
+      const totalCurrencies = formatMoney(portfolio.totalAmountCurrencies);
+      const totalFutures = formatMoney(portfolio.totalAmountFutures);
+      const totalOptions = formatMoney(portfolio.totalAmountOptions);
+      const totalSp = formatMoney(portfolio.totalAmountSp);
+
+      // Доходность
+      const expectedYield = formatMoney(portfolio.expectedYield);
+      const expectedYieldRelative = formatPercentage(
+        (portfolio as any).expectedYieldRelative,
+      );
+      const dailyYield = formatMoney(portfolio.dailyYield);
+      const dailyYieldRelative = formatPercentage(
+        (portfolio as any).dailyYieldRelative,
       );
 
-      const positions = portfolio.positions
-        .map(
-          (position) =>
-            `instrumentUid: ${
-              position.instrumentUid
-            }, количество: ${Helpers.toNumber(
-              position.quantity,
-            )}, средняя цена: ${Helpers.toMoneyString(
-              position.averagePositionPrice,
-            )} текущая цена: ${Helpers.toMoneyString(position.currentPrice)}`,
-        )
-        .join(', ');
+      // Позиции
+      const positionsText =
+        portfolio.positions.length > 0
+          ? portfolio.positions.map(formatPosition).join('\n\n')
+          : 'Нет открытых позиций';
 
-      return `Общая сумма: ${totalAmount}; Доступный баланс: ${availableBalance}\n\nОткрытые позиции - ${positions}`;
+      // Виртуальные позиции
+      const virtualPositionsText =
+        portfolio.virtualPositions && portfolio.virtualPositions.length > 0
+          ? portfolio.virtualPositions.map(formatVirtualPosition).join('\n\n')
+          : 'Нет виртуальных позиций';
+
+      return `📊 ПОРТФЕЛЬ (Счет: ${portfolio.accountId})
+
+💰 ОБЩАЯ СТОИМОСТЬ
+Общая стоимость портфеля: ${totalPortfolio}
+• Акции: ${totalShares}
+• Облигации: ${totalBonds}
+• ETF: ${totalEtf}
+• Валюты: ${totalCurrencies}
+• Фьючерсы: ${totalFutures}
+• Опционы: ${totalOptions}
+• Структурные продукты: ${totalSp}
+
+📈 ДОХОДНОСТЬ
+Ожидаемая доходность: ${expectedYield} (${expectedYieldRelative})
+Дневная доходность: ${dailyYield} (${dailyYieldRelative})
+
+📋 ОТКРЫТЫЕ ПОЗИЦИИ
+${positionsText}
+
+🎯 ВИРТУАЛЬНЫЕ ПОЗИЦИИ
+${virtualPositionsText}`;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Неизвестная ошибка';
