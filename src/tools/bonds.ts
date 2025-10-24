@@ -8,7 +8,8 @@ import {
 
 export const getBondsTool = {
   name: 'instruments_bonds',
-  description: 'Список всех доступных облигаций с поддержкой пагинации',
+  description:
+    'Получить список всех доступных облигаций. Используйте для поиска облигаций по тикеру или получения полного списка. Поддерживает пагинацию через параметры limit и skip.',
   parameters: GetBondsParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetBondsParams;
@@ -40,7 +41,8 @@ export const getBondsTool = {
 
 export const getBondByTool = {
   name: 'instruments_bondBy',
-  description: 'Получить облигацию по её идентификатору (FIGI, тикер или UID)',
+  description:
+    'Получить детальную информацию об облигации по её идентификатору. Используйте instrumentUid из портфеля или укажите FIGI/тикер. Параметр idType: INSTRUMENT_ID_TYPE_UID для instrumentUid, INSTRUMENT_ID_TYPE_TICKER для тикера, INSTRUMENT_ID_TYPE_FIGI для FIGI.',
   parameters: GetBondByParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetBondByParams;

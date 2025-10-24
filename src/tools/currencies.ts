@@ -8,7 +8,8 @@ import {
 
 export const getCurrenciesTool = {
   name: 'instruments_currencies',
-  description: 'Список всех доступных валют с поддержкой пагинации',
+  description:
+    'Получить список всех доступных валют. Используйте для поиска валют по тикеру или получения полного списка. Поддерживает пагинацию через параметры limit и skip.',
   parameters: GetCurrenciesParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetCurrenciesParams;
@@ -40,7 +41,8 @@ export const getCurrenciesTool = {
 
 export const getCurrencyByTool = {
   name: 'instruments_currencyBy',
-  description: 'Получить валюту по её идентификатору (FIGI, тикер или UID)',
+  description:
+    'Получить детальную информацию о валюте по её идентификатору. Используйте instrumentUid из портфеля или укажите FIGI/тикер. Параметр idType: INSTRUMENT_ID_TYPE_UID для instrumentUid, INSTRUMENT_ID_TYPE_TICKER для тикера, INSTRUMENT_ID_TYPE_FIGI для FIGI.',
   parameters: GetCurrencyByParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetCurrencyByParams;

@@ -65,7 +65,7 @@ const formatVirtualPosition = (position: any): string => {
 export const getPortfolioTool = {
   name: 'operations_getPortfolio',
   description:
-    'Возвращает детальную информацию о портфеле по счету: общая стоимость, доходность, открытые позиции, виртуальные позиции. Для получения подробной информации об инструментах используйте: instruments_shareBy (для акций), instruments_bondBy (для облигаций), instruments_etfBy (для ETF), instruments_currencyBy (для валют), instruments_futureBy (для фьючерсов), instruments_optionBy (для опционов) по instrumentUid из позиций',
+    'Возвращает детальную информацию о портфеле по счету: общая стоимость, доходность, открытые позиции, виртуальные позиции. Каждая позиция содержит instrumentUid для получения детальной информации. Для получения списка всех доступных инструментов используйте: instruments_shares (акции), instruments_bonds (облигации), instruments_etfs (ETF), instruments_currencies (валюты), instruments_futures (фьючерсы), instruments_options (опционы). Для детальной информации по конкретному инструменту используйте: instruments_shareBy, instruments_bondBy, instruments_etfBy, instruments_currencyBy, instruments_futureBy, instruments_optionBy с instrumentUid из позиций.',
   parameters: GetPortfolioParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetPortfolioParams;

@@ -8,7 +8,8 @@ import {
 
 export const getSharesTool = {
   name: 'instruments_shares',
-  description: 'Список всех доступных акций с поддержкой пагинации',
+  description:
+    'Получить список всех доступных акций. Используйте для поиска акций по тикеру или получения полного списка. Поддерживает пагинацию через параметры limit и skip.',
   parameters: GetSharesParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetSharesParams;
@@ -40,7 +41,8 @@ export const getSharesTool = {
 
 export const getShareByTool = {
   name: 'instruments_shareBy',
-  description: 'Получить акцию по её идентификатору (FIGI, тикер или UID)',
+  description:
+    'Получить детальную информацию об акции по её идентификатору. Используйте instrumentUid из портфеля или укажите FIGI/тикер. Параметр idType: INSTRUMENT_ID_TYPE_UID для instrumentUid, INSTRUMENT_ID_TYPE_TICKER для тикера, INSTRUMENT_ID_TYPE_FIGI для FIGI.',
   parameters: GetShareByParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetShareByParams;

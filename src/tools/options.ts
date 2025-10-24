@@ -8,7 +8,8 @@ import {
 
 export const getOptionsTool = {
   name: 'instruments_options',
-  description: 'Список всех доступных опционов с поддержкой пагинации',
+  description:
+    'Получить список всех доступных опционов. Используйте для поиска опционов по тикеру или получения полного списка. Поддерживает пагинацию через параметры limit и skip.',
   parameters: GetOptionsParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetOptionsParams;
@@ -40,7 +41,8 @@ export const getOptionsTool = {
 
 export const getOptionByTool = {
   name: 'instruments_optionBy',
-  description: 'Получить опцион по его идентификатору (FIGI, тикер или UID)',
+  description:
+    'Получить детальную информацию об опционе по его идентификатору. Используйте instrumentUid из портфеля или укажите FIGI/тикер. Параметр idType: INSTRUMENT_ID_TYPE_UID для instrumentUid, INSTRUMENT_ID_TYPE_TICKER для тикера, INSTRUMENT_ID_TYPE_FIGI для FIGI.',
   parameters: GetOptionByParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetOptionByParams;

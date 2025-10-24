@@ -8,7 +8,8 @@ import {
 
 export const getFuturesTool = {
   name: 'instruments_futures',
-  description: 'Список всех доступных фьючерсов с поддержкой пагинации',
+  description:
+    'Получить список всех доступных фьючерсов. Используйте для поиска фьючерсов по тикеру или получения полного списка. Поддерживает пагинацию через параметры limit и skip.',
   parameters: GetFuturesParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetFuturesParams;
@@ -40,7 +41,8 @@ export const getFuturesTool = {
 
 export const getFutureByTool = {
   name: 'instruments_futureBy',
-  description: 'Получить фьючерс по его идентификатору (FIGI, тикер или UID)',
+  description:
+    'Получить детальную информацию о фьючерсе по его идентификатору. Используйте instrumentUid из портфеля или укажите FIGI/тикер. Параметр idType: INSTRUMENT_ID_TYPE_UID для instrumentUid, INSTRUMENT_ID_TYPE_TICKER для тикера, INSTRUMENT_ID_TYPE_FIGI для FIGI.',
   parameters: GetFutureByParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetFutureByParams;

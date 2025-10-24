@@ -8,7 +8,8 @@ import {
 
 export const getEtfsTool = {
   name: 'instruments_etfs',
-  description: 'Список всех доступных ETF с поддержкой пагинации',
+  description:
+    'Получить список всех доступных ETF. Используйте для поиска ETF по тикеру или получения полного списка. Поддерживает пагинацию через параметры limit и skip.',
   parameters: GetEtfsParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetEtfsParams;
@@ -40,7 +41,8 @@ export const getEtfsTool = {
 
 export const getEtfByTool = {
   name: 'instruments_etfBy',
-  description: 'Получить ETF по его идентификатору (FIGI, тикер или UID)',
+  description:
+    'Получить детальную информацию об ETF по его идентификатору. Используйте instrumentUid из портфеля или укажите FIGI/тикер. Параметр idType: INSTRUMENT_ID_TYPE_UID для instrumentUid, INSTRUMENT_ID_TYPE_TICKER для тикера, INSTRUMENT_ID_TYPE_FIGI для FIGI.',
   parameters: GetEtfByParamsSchema,
   execute: async (args: unknown, context: any) => {
     const params = args as GetEtfByParams;
