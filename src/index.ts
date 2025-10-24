@@ -1,206 +1,52 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import express from 'express';
-import { randomUUID } from 'node:crypto';
-import { Helpers, TinkoffInvestApi } from 'tinkoff-invest-api';
-import z from 'zod';
+import { FastMCP } from 'fastmcp';
+import pJson from '../package.json';
+import { getAccountsTool } from './tools/accounts';
+import { getBondByTool, getBondsTool } from './tools/bonds';
+import { getPortfolioTool } from './tools/portfolio';
+import { getShareByTool, getSharesTool } from './tools/shares';
+import { getUserInfoTool } from './tools/userInfo';
 
-const app = express();
-app.use(express.json());
+const version = `${pJson.version}` as `${number}.${number}.${number}`;
+const port = parseInt(process.env.PORT || '8080');
 
-// Map to store transports by session ID
-const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+const server = new FastMCP({
+  name: 't-invest-api',
+  version,
+  authenticate: async (request) => {
+    const token = request.headers['authorization']?.startsWith('Bearer ')
+      ? request.headers['authorization'].slice(7)
+      : undefined;
 
-// Handle POST requests for client-to-server communication
-app.post('/mcp', async (req, res) => {
-  console.log(JSON.stringify(req.headers, null, 2));
-  const token = req.headers['authorization']?.toString().startsWith('Bearer ')
-    ? req.headers['authorization'].toString().slice(7)
-    : undefined;
-  if (!token) {
-    throw new Error('apiToken (Bearer) is required in Authorization header');
-  }
+    if (!token) {
+      throw new Response(null, {
+        status: 401,
+        statusText: 'Unauthorized: Bearer token required',
+      });
+    }
 
-  const api = new TinkoffInvestApi({ token });
-
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  let transport: StreamableHTTPServerTransport;
-
-  if (sessionId && transports[sessionId]) {
-    // Reuse existing transport
-    transport = transports[sessionId];
-  } else if (!sessionId && isInitializeRequest(req.body)) {
-    // New initialization request
-    transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (sessionId) => {
-        // Store the transport by session ID
-        transports[sessionId] = transport;
-      },
-      // DNS rebinding protection is disabled by default for backwards compatibility. If you are running this server
-      // locally, make sure to set:
-      // enableDnsRebindingProtection: true,
-      // allowedHosts: ['127.0.0.1'],
-    });
-
-    // Clean up transport when closed
-    transport.onclose = () => {
-      if (transport.sessionId) {
-        delete transports[transport.sessionId];
-      }
-    };
-    const server = new McpServer({
-      name: 'example-server',
-      version: '1.0.0',
-    });
-
-    server.registerTool(
-      'instruments/shares',
-      {
-        title: 'Список акций',
-        description: 'Список всех доступных акций',
-      },
-      async () => {
-        const { instruments } = await api.instruments.shares({});
-
-        return {
-          content: instruments.map((instrument) => ({
-            type: 'text',
-            text: `instrument_id: ${instrument.uid}; ticker: ${instrument.ticker}; название: ${instrument.name}; лотность: ${instrument.lot}; валюта: ${instrument.currency};`,
-          })),
-        };
-      },
-    );
-    server.registerTool(
-      'users/getInfo',
-      {
-        title: 'Информация о пользователе',
-        description:
-          'Получить информацию о пользователе: тариф, признак квалификации, пройденные тесты и др.',
-      },
-      async () => {
-        const info = await api.users.getInfo({});
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Тариф: ${info.tariff}; Премиум: ${
-                info.premStatus ? 'Да' : 'Нет'
-              }; Квалификация: ${
-                info.qualStatus ? 'Да' : 'Нет'
-              }; Может работать с ${info.qualifiedForWorkWith.join(', ')}`,
-            },
-          ],
-        };
-      },
-    );
-    server.registerTool(
-      'users/getAccounts',
-      {
-        title: 'Счета пользователя',
-        description: 'Позволяет получить информацию о счетах пользователя',
-      },
-      async () => {
-        const { accounts } = await api.users.getAccounts({});
-
-        return {
-          content: accounts.map((account) => ({
-            type: 'text',
-            text: `id: ${account.id}, name: ${account.name}, type: ${account.type}, status: ${account.status}`,
-          })),
-        };
-      },
-    );
-    server.registerTool(
-      'operations/getPortfolio',
-      {
-        title: 'Портфель',
-        description:
-          'Возвращает информацию о портфеле по счету: сумма, доступный баланс, открытые позиции',
-        inputSchema: {
-          accountId: z.string().describe('ID счета'),
-        },
-      },
-      async ({ accountId }) => {
-        const portfolio = await api.operations.getPortfolio({ accountId });
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Общая сумма: ${Helpers.toMoneyString(
-                portfolio.totalAmountPortfolio,
-              )}; Доступный баланс: ${Helpers.toMoneyString(
-                portfolio.totalAmountCurrencies,
-              )}`,
-            },
-
-            {
-              type: 'text',
-              text: `Открытые позиции - ${portfolio.positions
-                .map(
-                  (position) =>
-                    `instrumentUid: ${
-                      position.instrumentUid
-                    }, количество: ${Helpers.toNumber(
-                      position.quantity,
-                    )}, средняя цена: ${Helpers.toMoneyString(
-                      position.averagePositionPrice,
-                    )} текущая цена: ${Helpers.toMoneyString(
-                      position.currentPrice,
-                    )}`,
-                )
-                .join(', ')}`,
-            },
-          ],
-        };
-      },
-    );
-
-    // ... set up server resources, tools, and prompts ...
-
-    // Connect to the MCP server
-    await server.connect(transport);
-  } else {
-    // Invalid request
-    res.status(400).json({
-      jsonrpc: '2.0',
-      error: {
-        code: -32000,
-        message: 'Bad Request: No valid session ID provided',
-      },
-      id: null,
-    });
-    return;
-  }
-
-  // Handle the request
-  await transport.handleRequest(req, res, req.body);
+    return { token };
+  },
 });
 
-// Reusable handler for GET and DELETE requests
-const handleSessionRequest = async (
-  req: express.Request,
-  res: express.Response,
-) => {
-  console.log(JSON.stringify(req.headers, null, 2));
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  if (!sessionId || !transports[sessionId]) {
-    res.status(400).send('Invalid or missing session ID');
-    return;
-  }
+// Регистрируем инструменты
+server.addTool(getSharesTool);
+server.addTool(getShareByTool);
+server.addTool(getBondsTool);
+server.addTool(getBondByTool);
+server.addTool(getUserInfoTool);
+server.addTool(getAccountsTool);
+server.addTool(getPortfolioTool);
 
-  const transport = transports[sessionId];
-  await transport.handleRequest(req, res);
-};
+// Запускаем сервер
+server.start({
+  transportType: 'httpStream',
+  httpStream: {
+    host: '0.0.0.0',
+    port,
+    endpoint: '/mcp',
+  },
+});
 
-// Handle GET requests for server-to-client notifications via SSE
-app.get('/mcp', handleSessionRequest);
-
-// Handle DELETE requests for session termination
-app.delete('/mcp', handleSessionRequest);
-
-app.listen(3000);
-console.log('Server is running on http://localhost:3000');
+console.info(
+  `MCP сервер t-invest-api запущен и готов к работе на порту ${port}`,
+);

@@ -1,7 +1,32 @@
 services:
-  t-invest-api:
+  mcp-server:
     build: .
-    container_name: t-invest-api
+    container_name: t-invest-api-mcp
     restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.mcp-t-invest-api.rule=Host(`tinvest.mcp.bulevo.ru`)"
+      - "traefik.http.routers.mcp-t-invest-api.entrypoints=websecure"
+      - "traefik.http.routers.mcp-t-invest-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mcp-t-invest-api.loadbalancer.server.port=${PORT}"
+  mcp-server-dev:
+    build: .
+    container_name: t-invest-api-mcp-dev
+    profiles:
+      - dev
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
-      NODE_ENV: production
+      - NODE_ENV=development
+    command: npm run dev
+    restart: unless-stopped
+
+networks:
+  traefik:
+    external: true
