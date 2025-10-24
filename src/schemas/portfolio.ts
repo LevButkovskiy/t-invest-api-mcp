@@ -33,7 +33,6 @@ const PositionSchema = z.object({
     'Средняя цена позиции в пунктах',
   ),
   currentPrice: MoneySchema.describe('Текущая цена'),
-  averagePositionPriceFifo: MoneySchema.describe('Средняя цена позиции FIFO'),
   dailyYield: MoneySchema.describe('Дневная доходность'),
   ticker: z.string().describe('Тикер инструмента'),
 });
