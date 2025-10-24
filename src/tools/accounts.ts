@@ -5,7 +5,7 @@ import {
 } from '../schemas/accounts';
 
 export const getAccountsTool = {
-  name: 'users/getAccounts',
+  name: 'users_getAccounts',
   description: 'Позволяет получить информацию о счетах пользователя',
   parameters: GetAccountsParamsSchema,
   execute: async (args: unknown, context: any) => {

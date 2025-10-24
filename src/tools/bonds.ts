@@ -7,7 +7,7 @@ import {
 } from '../schemas/bonds';
 
 export const getBondsTool = {
-  name: 'instruments/bonds',
+  name: 'instruments_bonds',
   description: 'Список всех доступных облигаций с поддержкой пагинации',
   parameters: GetBondsParamsSchema,
   execute: async (args: unknown, context: any) => {
@@ -39,7 +39,7 @@ export const getBondsTool = {
 };
 
 export const getBondByTool = {
-  name: 'instruments/bondBy',
+  name: 'instruments_bondBy',
   description: 'Получить облигацию по её идентификатору (FIGI, тикер или UID)',
   parameters: GetBondByParamsSchema,
   execute: async (args: unknown, context: any) => {

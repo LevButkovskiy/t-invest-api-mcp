@@ -5,7 +5,7 @@ import {
 } from '../schemas/portfolio';
 
 export const getPortfolioTool = {
-  name: 'operations/getPortfolio',
+  name: 'operations_getPortfolio',
   description:
     'Возвращает информацию о портфеле по счету: сумма, доступный баланс, открытые позиции',
   parameters: GetPortfolioParamsSchema,

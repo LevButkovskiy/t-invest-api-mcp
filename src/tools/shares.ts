@@ -7,7 +7,7 @@ import {
 } from '../schemas/shares';
 
 export const getSharesTool = {
-  name: 'instruments/shares',
+  name: 'instruments_shares',
   description: 'Список всех доступных акций с поддержкой пагинации',
   parameters: GetSharesParamsSchema,
   execute: async (args: unknown, context: any) => {
@@ -39,7 +39,7 @@ export const getSharesTool = {
 };
 
 export const getShareByTool = {
-  name: 'instruments/shareBy',
+  name: 'instruments_shareBy',
   description: 'Получить акцию по её идентификатору (FIGI, тикер или UID)',
   parameters: GetShareByParamsSchema,
   execute: async (args: unknown, context: any) => {

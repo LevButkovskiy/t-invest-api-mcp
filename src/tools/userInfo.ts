@@ -5,7 +5,7 @@ import {
 } from '../schemas/userInfo';
 
 export const getUserInfoTool = {
-  name: 'users/getInfo',
+  name: 'users_getInfo',
   description:
     'Получить информацию о пользователе: тариф, признак квалификации, пройденные тесты и др.',
   parameters: GetUserInfoParamsSchema,
